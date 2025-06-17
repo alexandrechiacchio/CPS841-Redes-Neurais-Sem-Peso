@@ -1,0 +1,1 @@
+from .kernelcanvas2 import KernelCanvas2
