@@ -59,6 +59,39 @@ public:
         std::cout << "test sucessful!" << std::endl;
     }
 
+    void mutateKernel(double mutationFactor = 0.1){
+        if (mutationFactor < 0 || mutationFactor > 1)
+            throw std::invalid_argument("Error: mutation factor must be between 0 and 1!");
+
+        std::vector<int> randIndexes(kernel_points.size());
+        std::iota(randIndexes.begin(), randIndexes.end(), 0);
+
+        std::shuffle(randIndexes.begin(), randIndexes.end(), std::mt19937{std::random_device{}()});
+
+        std::vector<std::pair<int, int>> directions = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };  // up, down, left, right
+
+        for (int i : randIndexes) {
+            int row = kernel_points[i].first;
+            int col = kernel_points[i].second;
+            int direction = std::rand() % directions.size();
+            int new_row = row + directions[direction].first;
+            int new_col = col + directions[direction].second;
+
+            if (new_row >= 0 && new_row < shape.first && new_col >= 0 && new_col < shape.second) {
+                bool repeated = false;
+                for (const auto &kp : kernel_points) {
+                    if (kp.first == new_row && kp.second == new_col) {
+                        repeated = true;
+                        break;
+                    }
+                }
+                if(!repeated) kernel_points[i] = { new_row, new_col };
+            }
+        }
+
+        findClosestKernels();
+    }
+
 
     std::vector<std::pair<int, int>> getKernelPoints() const
     {
@@ -72,14 +105,31 @@ public:
     {
         return shape;
     }
+    int getNumberOfKernels() const
+    {
+        return numberOfKernels;
+    }
 
-protected:
     std::pair<int, int> shape;
     int numberOfKernels;
     int bitsPerKernel;
     float activationDegree;
     std::vector<std::pair<int, int>> kernel_points;
     std::vector<std::vector<int>> closestKernel;
+    
+    void findClosestKernels()
+    {
+        for (int i = 0; i < shape.first; i++)
+        {
+            for (int j = 0; j < shape.second; j++)
+            {
+                std::pair<int, int> point = {i, j};
+                closestKernel[i][j] = findClosestKernel(point);
+            }
+        }
+    }
+    
+    protected:
 
     float squareDistance(std::pair<int, int> &a, std::pair<int, int> &b)
     {
@@ -99,7 +149,7 @@ protected:
             kernel_points[i] = {points[i] % shape.first, points[i] / shape.first};
         }
     }
-
+    
     int findClosestKernel(std::pair<int, int> &point)
     {
         int ret = -1;
@@ -113,16 +163,5 @@ protected:
         }
         return ret;
     }
-
-    void findClosestKernels()
-    {
-        for (int i = 0; i < shape.first; i++)
-        {
-            for (int j = 0; j < shape.second; j++)
-            {
-                std::pair<int, int> point = {i, j};
-                closestKernel[i][j] = findClosestKernel(point);
-            }
-        }
-    }
+    
 };
