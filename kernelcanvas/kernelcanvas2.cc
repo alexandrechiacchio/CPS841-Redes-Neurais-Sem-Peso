@@ -39,7 +39,7 @@ public:
         //     throw std::invalid_argument("Error: input data must be a 2D vector with two columns!");
 
         std::vector<int_fast8_t> output(numberOfKernels * bitsPerKernel, 0);
-
+        
         for (size_t i = 0; i < data.size(); i++)
         {
             for (size_t j = 0; j < data[i].size(); j++)
@@ -67,6 +67,7 @@ public:
         std::iota(randIndexes.begin(), randIndexes.end(), 0);
 
         std::shuffle(randIndexes.begin(), randIndexes.end(), std::mt19937{std::random_device{}()});
+        randIndexes.resize(static_cast<int>(mutationFactor * kernel_points.size()));
 
         std::vector<std::pair<int, int>> directions = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };  // up, down, left, right
 
